@@ -1,43 +1,143 @@
 version: 2.1
 
+utils:
+  assemble_project: &assemble_project
+    name: Assemble Project
+    command: |
+      python3 pmpx.py local-assemble << parameters.project_name >> development
+  prepare_container: &prepare_container
+    name: Prepare docker
+    command: |
+      sudo apt-get update
+      sudo apt-get install curl pandoc openjdk-8-jdk-headless sqlite3 graphviz-dev -y
+      sudo apt-get clean
+
+      sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+      curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  > miniconda.sh
+      bash miniconda.sh -b -p /home/circleci/miniconda
+      sudo rm -rf ~/.pyenv/ /opt/circleci/.pyenv/
+      source /home/circleci/miniconda/etc/profile.d/conda.sh
+      conda create --name=pmpx_env python=3.7 -y
+      conda activate pmpx_env
+      conda install -y virtualenv
+      pip install -U setuptools wheel
+      mkdir ~/.aws
+      echo "[default]
+            aws_access_key_id=${S3_AWS_ACCESS_KEY}
+            aws_secret_access_key=${S3_AWS_SECRET_ACCESS_KEY}" > ~/.aws/credentials
+  cache_key: &cache_key conda-env-cache-{{ checksum "assemblers/<< parameters.project_name>>/template_mods/src/requirements.txt" }}-{{ checksum "components/templates/pmpx_pkg/src/requirements.txt" }}-{{ checksum "components/templates/pmpx_pkg/src/test_requirements.txt" }}-{{ checksum "components/templates/pmpx_pkg/src/doc_requirements.txt" }}
+  activate_conda: &activate_conda
+    name: Activate conda environment
+    command: |
+      echo ". /home/circleci/miniconda/etc/profile.d/conda.sh" >> $BASH_ENV
+      echo "conda deactivate; conda activate << parameters.project_name >>" >> $BASH_ENV
+  setup_requirements: &setup_requirements
+    name: Install PIP dependencies.
+    command: |
+      cd /home/circleci/project/development/<< parameters.project_name >>
+      conda deactivate
+      conda create --name=<< parameters.project_name >> --clone pmpx_env
+      conda activate << parameters.project_name >>
+      pip install --upgrade setuptools
+      pip install "kedro[spark, pandas, matplotlib]>=0.17.3, <0.18"
+      kedro pmpx install
+      pip install -r src/test_requirements.txt -U
+      pip install -r src/doc_requirements.txt -U
+      pip install packages/shap-0.35.0-cp37-cp37m-linux_x86_64.whl
+  pip_freeze: &pip_freeze
+    name: Print versions of all packages
+    command: |
+      pip freeze
+  lint: &lint
+    name: Lint files
+    command: |
+      cd /home/circleci/project/development/<< parameters.project_name >>
+      kedro pmpx isort --check
+      kedro pmpx lint
+      pydocstyle --convention=google
+  black: &black
+    name: Run Black Code Formatter
+    command: |
+      cd /home/circleci/project/development/<< parameters.project_name >>
+      kedro pmpx black --check
+  unit_tests: &unit_tests
+    name: Unit tests
+    command: |
+      cd /home/circleci/project/development/<< parameters.project_name >>
+      kedro pmpx test --type=unit -n 3
+
 setup: << pipeline.parameters.run-setup >>
 
 orbs:
   path-filtering: circleci/path-filtering@0.0.2
+  continuation: circleci/continuation@0.1.2
+
+  pmpx_orbs:
+    jobs:
+      utility_unit_test:
+        parameters:
+          project_name:
+            type: string
+        executor: docker_image
+        resource_class: xlarge
+        steps:
+          - setup_project:
+              project_name: << parameters.project_name >>
+          - black:
+              project_name: << parameters.project_name >>
+          - unit_tests:
+              project_name: << parameters.project_name >>
+
+    commands:
+      setup_project:
+        parameters:
+          project_name:
+            type: string
+        steps:
+          - checkout
+          - run: *assemble_project
+          - run: *prepare_container
+          - restore_cache:
+              keys:
+                - *cache_key
+          - run: *activate_conda
+          - run: *setup_requirements
+          - run: *pip_freeze
+          - save_cache:
+              paths:
+                - /home/circleci/miniconda/envs/<< parameters.project_name >>
+              key: *cache_key
+      black:
+        description: Run Black Code Formatter
+        parameters:
+          project_name:
+            type: string
+        steps:
+          - run: *black
+      unit_tests:
+        description: Run unit tests
+        parameters:
+          project_name:
+            type: string
+        steps:
+          - run: *unit_tests
+
+    executors:
+      docker_image:
+        docker:
+          - image: cimg/python:3.7
 
 parameters:
   run-setup:
     type: boolean
     default: true
-  run-module-a:
+  run-rmarkdown:
     type: boolean
     default: false
-  run-module-b:
+  run-utility-fuse2:
     type: boolean
     default: false
 
-jobs:
-  module-a:
-    docker:
-      - image: alpine
-    steps:
-      - checkout
-      - run: "echo 'Hello from module A!'"
-      - run: cat module-a/README.md
-
-  module-b:
-    machine: true
-    steps:
-      - checkout
-      - run: "echo 'Hello from module B!'"
-      - run: cat module-b/README.md
-
-  module-b-post:
-    docker:
-      - image: alpine
-    steps:
-      - run: "echo 'Continuing module B'"
-      - run: env
 
 workflows:
   pre:
@@ -45,22 +145,17 @@ workflows:
     jobs:
       - path-filtering/filter:
           # Compare files on main
-          base-revision: main
+          base-revision: master
           # Config for continuation; herein we reuse this config itself
           config-path: .circleci/config.yml
           # 3-column space-separated table for mapping; `path-to-test parameter-to-set value-for-parameter` for each row
           mapping: |
             .* run-setup false
-            module-a/.* run-module-a true
-            module-b/.* run-module-b true
-  module-a:
-    when: << pipeline.parameters.run-module-a >>
+            module-b/.* run-utility-fuse2 true
+
+  utility-fuse2:
+    when: << pipeline.parameters.run-utility-fuse2 >>
     jobs:
-      - module-a
-  module-b:
-    when: << pipeline.parameters.run-module-b >>
-    jobs:
-      - module-b
-      - module-b-post:
-          requires:
-            - module-b
+      - pmpx_orbs/utility_unit_test:
+          name: utility_fuse2
+          project_name: .internal

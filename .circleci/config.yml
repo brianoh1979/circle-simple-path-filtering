@@ -4,6 +4,7 @@ setup: << pipeline.parameters.run-setup >>
 
 orbs:
   path-filtering: circleci/path-filtering@0.1.1
+  continuation: circleci/continuation@0.2.0
 
 parameters:
   run-setup:
@@ -41,7 +42,9 @@ jobs:
 
 workflows:
   pre:
-    when: << pipeline.parameters.run-setup >>
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - path-filtering/filter:
           # Compare files on main
@@ -53,6 +56,12 @@ workflows:
             .* run-setup false
             module-a/.* run-module-a true
             module-b/.* run-module-b true
+  
+  scheduled:
+    when: 
+      and:
+        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+        - equal: [ true, << pipeline.parameters.module-b >> ]   
   module-a:
     when: << pipeline.parameters.run-module-a >>
     jobs:

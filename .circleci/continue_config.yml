@@ -19,10 +19,4 @@ jobs:
 workflows:
   module-a-workflow:
     jobs:
-      - common-pre
-      - module-a-build:
-          requires:
-            - common-pre
-      - module-a-hello-build/hello-build:
-          requires:
-            - common-pre
+      - module-a-build

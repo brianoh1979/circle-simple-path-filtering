@@ -51,8 +51,8 @@ workflows:
           config-path: .circleci/continue_config.yml
           # 3-column space-separated table for mapping; `path-to-test parameter-to-set value-for-parameter` for each row
           mapping: |
-            module-a/.* run-module-a true
-            module-b/.* run-module-b true
+            module-a
+            module-b
   
   scheduled:
     when: 

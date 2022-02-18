@@ -1,15 +1,12 @@
 version: 2.1
 
-setup: << pipeline.parameters.run-setup >>
+setup: true
 
 orbs:
   path-filtering: circleci/path-filtering@0.1.1
   continuation: circleci/continuation@0.2.0
 
 parameters:
-  run-setup:
-    type: boolean
-    default: true
   run-module-a:
     type: boolean
     default: false
@@ -48,12 +45,11 @@ workflows:
     jobs:
       - path-filtering/filter:
           # Compare files on main
-          base-revision: HEAD
+          base-revision: main
           # Config for continuation; herein we reuse this config itself
           config-path: .circleci/config.yml
           # 3-column space-separated table for mapping; `path-to-test parameter-to-set value-for-parameter` for each row
           mapping: |
-            .* run-setup false
             module-a/.* run-module-a true
             module-b/.* run-module-b true
   

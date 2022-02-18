@@ -58,12 +58,11 @@ workflows:
     when: 
       and:
         - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-        - equal: [ true, << pipeline.parameters.run-module-b >> ] 
     jobs:
       - continuation/continue:
           pre-steps:
             - checkout
-          configuration_path: module-b/.circleci/config.yml 
+          configuration_path: .circleci/continue_config.yml 
 #  module-a:
 #    when: << pipeline.parameters.run-module-a >>
 #    jobs:

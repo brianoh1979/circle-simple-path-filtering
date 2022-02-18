@@ -61,7 +61,12 @@ workflows:
     when: 
       and:
         - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-        - equal: [ true, << pipeline.parameters.module-b >> ]   
+        - equal: [ true, << pipeline.parameters.module-b >> ] 
+    jobs:
+      - module-b
+      - module-b-post:
+          requires:
+            - module-b  
   module-a:
     when: << pipeline.parameters.run-module-a >>
     jobs:

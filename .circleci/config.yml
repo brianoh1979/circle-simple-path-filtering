@@ -186,8 +186,9 @@ workflows:
       and:
         - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
-      - continuation/continue:
-          pre-steps:
-            - checkout
-          configuration_path: .circleci/continue_config.yml
+      - module-b
+  #    - continuation/continue:
+  #        pre-steps:
+  #          - checkout
+  #        configuration_path: .circleci/continue_config.yml
 

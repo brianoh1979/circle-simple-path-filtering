@@ -12,8 +12,6 @@ jobs:
     docker:
       - image: alpine
     steps:
-      - common-say-hello:
-          to: B
       - run: echo 'Hello, from module B! :3'
 
   module-b-postrun:
@@ -32,6 +30,6 @@ workflows:
       - module-b-postrun:
           requires:
             - module-b-build
-  module-b-workflow-y:
-    jobs:
-      - module-b-hello-build/hello-build
+#  module-b-workflow-y:
+#    jobs:
+#      - module-b-hello-build/hello-build

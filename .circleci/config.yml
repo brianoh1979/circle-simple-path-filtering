@@ -2,10 +2,6 @@ version: 2.1
 
 setup: true
 
-#orbs:
-#  path-filtering: circleci/path-filtering@0.1.1
-#  continuation: circleci/continuation@0.2.0
-
 parameters:
   run-setup:
     description: Whether it is a setup workflow or a continuation
@@ -20,13 +16,6 @@ parameters:
     type: string
     default: ""
 
-#parameters:
-#  run-module-a:
-#    type: boolean
-#    default: false
-#  run-module-b:
-#    type: boolean
-#    default: false
 
 jobs:
   module-a:
@@ -129,7 +118,6 @@ orbs:
 
                 xargs -a "<< parameters.modules >>" yq -y -s 'reduce .[] as $item ({}; . * $item)' | tee "<< parameters.continue-config >>"
 
-
 workflows:
   # The setup workflow
   setup-workflow:
@@ -197,7 +185,7 @@ workflows:
   scheduled:
     when:
       and:
-        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - continuation/continue:
           pre-steps:

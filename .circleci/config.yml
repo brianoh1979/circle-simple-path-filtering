@@ -118,23 +118,6 @@ orbs:
 
                 xargs -a "<< parameters.modules >>" yq -y -s 'reduce .[] as $item ({}; . * $item)' | tee "<< parameters.continue-config >>"
 
-workflows:
-  # The setup workflow
-  setup-workflow:
-    when:
-      not:
-        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-    jobs:
-      - config-splitting/setup-dynamic-config:
-          force-all: << pipeline.parameters.force-all >>
-          base-revision: main
-          # If A is modified, the job for A will run
-          # Similarly if B is modified, the job for B will run
-          # If C is modified, then the jobs for both C and B (as a dependency) will run
-          modules: |
-            module-a
-            module-b
-
     jobs:
       # The job for the setup workflow
       setup-dynamic-config:
@@ -181,6 +164,23 @@ workflows:
           - continuation/continue:
               configuration_path: << parameters.continue-config >>
               parameters: '{"run-setup":false}'
+
+workflows:
+  # The setup workflow
+  setup-workflow:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - config-splitting/setup-dynamic-config:
+          force-all: << pipeline.parameters.force-all >>
+          base-revision: main
+          # If A is modified, the job for A will run
+          # Similarly if B is modified, the job for B will run
+          # If C is modified, then the jobs for both C and B (as a dependency) will run
+          modules: |
+            module-a
+            module-b
 
   scheduled:
     when:

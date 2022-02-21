@@ -67,6 +67,17 @@ workflows:
           modules: |
             module-a
             module-b
+  
+  scheduled:
+    when:
+      and:
+        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - continuation/continue:
+          pre-steps:
+            - checkout
+          configuration_path: .circleci/continue_config.yml
+
 
 orbs:
   # An "embedded" orb to facilitate config splitting

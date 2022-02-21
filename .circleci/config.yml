@@ -1,6 +1,6 @@
 version: 2.1
 
-setup: true
+setup: << parameters.run-setup >>
 
 parameters:
   run-setup:

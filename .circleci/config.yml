@@ -147,18 +147,6 @@ workflows:
             module-a
             module-b
 
-  scheduled:
-    when:
-      and:
-        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-    jobs:
-      - continuation/continue:
-          pre-steps:
-            - checkout
-          configuration_path: .circleci/continue_config.yml
-
-
-
     jobs:
       # The job for the setup workflow
       setup-dynamic-config:
@@ -206,6 +194,15 @@ workflows:
               configuration_path: << parameters.continue-config >>
               parameters: '{"run-setup":false}'
 
+  scheduled:
+    when:
+      and:
+        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - continuation/continue:
+          pre-steps:
+            - checkout
+          configuration_path: .circleci/continue_config.yml
 
 #workflows:
 #  pre:

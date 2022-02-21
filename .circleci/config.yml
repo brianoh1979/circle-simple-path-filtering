@@ -18,21 +18,6 @@ parameters:
 
 
 jobs:
-  common-pre:
-    docker:
-      - image: alpine
-    steps:
-      - common-say-hello
-      - run: echo 'Jobs with `common-` prefix are intended to be shared among modules'
-
-  module-a:
-    docker:
-      - image: alpine
-    steps:
-      - checkout
-      - run: "echo 'Hello from module A!'"
-      - run: cat module-a/README.md
-
   module-b:
     machine: true
     steps:
@@ -40,12 +25,6 @@ jobs:
       - run: "echo 'Hello from module B!'"
       - run: cat module-b/README.md
 
-  module-b-post:
-    docker:
-      - image: alpine
-    steps:
-      - run: "echo 'Continuing module B'"
-      - run: env
 
 
 orbs:
@@ -180,8 +159,8 @@ workflows:
     jobs:
       - config-splitting/setup-dynamic-config:
           force-all: << pipeline.parameters.force-all >>
-          setup: false
-          base-revision: main
+          base-revision: HEAD
+          config-path: .circleci/continue-config.yml
           # If A is modified, the job for A will run
           # Similarly if B is modified, the job for B will run
           # If C is modified, then the jobs for both C and B (as a dependency) will run

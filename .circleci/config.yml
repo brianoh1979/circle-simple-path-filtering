@@ -166,7 +166,6 @@ orbs:
               parameters: '{"run-setup":false}'
 
 workflows:
-  # The setup workflow
   setup-workflow:
     when:
       not:
@@ -185,7 +184,7 @@ workflows:
   scheduled:
     when:
       and:
-        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - continuation/continue:
           pre-steps:

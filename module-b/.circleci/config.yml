@@ -23,13 +23,7 @@ jobs:
 workflows:
   module-b-workflow-x:
     jobs:
-      - common-pre
-      - module-b-build:
-          requires:
-            - common-pre
-      - module-b-postrun:
-          requires:
-            - module-b-build
+      - module-b-build
 #  module-b-workflow-y:
 #    jobs:
 #      - module-b-hello-build/hello-build

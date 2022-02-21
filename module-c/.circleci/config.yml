@@ -16,10 +16,7 @@ jobs:
 workflows:
   module-c-workflow:
     jobs:
-      - common-pre
-      - module-c-build:
-          requires:
-            - common-pre
+      - module-c-build
 #      - module-c-hello-build/hello-build:
 #          requires:
 #            - common-pre

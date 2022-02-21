@@ -51,33 +51,6 @@ jobs:
       - run: "echo 'Continuing module B'"
       - run: env
 
-workflows:
-  # The setup workflow
-  setup-workflow:
-    when:
-      not:
-        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-    jobs:
-      - config-splitting/setup-dynamic-config:
-          force-all: << pipeline.parameters.force-all >>
-          base-revision: main
-          # If A is modified, the job for A will run
-          # Similarly if B is modified, the job for B will run
-          # If C is modified, then the jobs for both C and B (as a dependency) will run
-          modules: |
-            module-a
-            module-b
-  
-  scheduled:
-    when:
-      and:
-        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
-    jobs:
-      - continuation/continue:
-          pre-steps:
-            - checkout
-          configuration_path: .circleci/continue_config.yml
-
 
 orbs:
   # An "embedded" orb to facilitate config splitting
@@ -155,6 +128,37 @@ orbs:
                 fi
 
                 xargs -a "<< parameters.modules >>" yq -y -s 'reduce .[] as $item ({}; . * $item)' | tee "<< parameters.continue-config >>"
+
+
+workflows:
+  # The setup workflow
+  setup-workflow:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - config-splitting/setup-dynamic-config:
+          force-all: << pipeline.parameters.force-all >>
+          base-revision: main
+          # If A is modified, the job for A will run
+          # Similarly if B is modified, the job for B will run
+          # If C is modified, then the jobs for both C and B (as a dependency) will run
+          modules: |
+            module-a
+            module-b
+
+  scheduled:
+    when:
+      and:
+        - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - continuation/continue:
+          pre-steps:
+            - checkout
+          configuration_path: .circleci/continue_config.yml
+
+
+
     jobs:
       # The job for the setup workflow
       setup-dynamic-config:

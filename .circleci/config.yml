@@ -46,7 +46,7 @@ orbs:
   config-splitting:
     # Dependencies
     orbs:
-      continuation: circleci/continuation@0.2.0
+      continuation: circleci/continuation@0.0.1
     # Commands for the setup workflow
     commands:
       list-changed-modules:

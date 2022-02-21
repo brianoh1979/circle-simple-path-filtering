@@ -180,6 +180,7 @@ workflows:
           modules: |
             module-a
             module-b
+            module-c module-b
 
   scheduled:
     when:

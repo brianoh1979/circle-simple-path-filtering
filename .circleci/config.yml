@@ -18,6 +18,13 @@ parameters:
 
 
 jobs:
+  common-pre:
+    docker:
+      - image: alpine
+    steps:
+      - common-say-hello
+      - run: echo 'Jobs with `common-` prefix are intended to be shared among modules'
+
   module-a:
     docker:
       - image: alpine

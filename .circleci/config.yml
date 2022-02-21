@@ -76,7 +76,7 @@ orbs:
           shared-config:
             description: Path to the config providing shared resources (such as prerequisite jobs and common commands)
             type: string
-            default: .circleci/config.yml
+            default: .circleci/continue-config.yml
           continue-config:
             description: Path to the internally-used config for continuation
             type: string
@@ -126,7 +126,7 @@ orbs:
           shared-config:
             description: Path to the config providing shared resources (such as prerequisite jobs and common commands)
             type: string
-            default: .circleci/config.yml
+            default: .circleci/continue-config.yml
           continue-config:
             description: Path to the internally-used config for continuation
             type: string
@@ -160,7 +160,6 @@ workflows:
       - config-splitting/setup-dynamic-config:
           force-all: << pipeline.parameters.force-all >>
           base-revision: HEAD
-          config-path: .circleci/continue-config.yml
           # If A is modified, the job for A will run
           # Similarly if B is modified, the job for B will run
           # If C is modified, then the jobs for both C and B (as a dependency) will run

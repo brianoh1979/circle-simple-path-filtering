@@ -174,10 +174,10 @@ orbs:
 
 workflows:
   setup-workflow:
-    when:
-      and:
-        - equal: << pipeline.parameters.run-setup >>
-        - not: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    when: << pipeline.parameters.run-setup >>
+#      and:
+#        - equal: << pipeline.parameters.run-setup >>
+#        - not: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - config-splitting/setup-dynamic-config:
           force-all: << pipeline.parameters.force-all >>
